@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	Poker_GetNuts_FullMethodName = "/poker.Poker/GetNuts"
+	Poker_GetNuts_FullMethodName       = "/poker.Poker/GetNuts"
+	Poker_LotsOfReplies_FullMethodName = "/poker.Poker/LotsOfReplies"
 )
 
 // PokerClient is the client API for Poker service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PokerClient interface {
 	GetNuts(ctx context.Context, in *GetNutsRequest, opts ...grpc.CallOption) (*GetNutsResponse, error)
+	LotsOfReplies(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (Poker_LotsOfRepliesClient, error)
 }
 
 type pokerClient struct {
@@ -47,11 +49,45 @@ func (c *pokerClient) GetNuts(ctx context.Context, in *GetNutsRequest, opts ...g
 	return out, nil
 }
 
+func (c *pokerClient) LotsOfReplies(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (Poker_LotsOfRepliesClient, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Poker_ServiceDesc.Streams[0], Poker_LotsOfReplies_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &pokerLotsOfRepliesClient{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Poker_LotsOfRepliesClient interface {
+	Recv() (*HelloResponse, error)
+	grpc.ClientStream
+}
+
+type pokerLotsOfRepliesClient struct {
+	grpc.ClientStream
+}
+
+func (x *pokerLotsOfRepliesClient) Recv() (*HelloResponse, error) {
+	m := new(HelloResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // PokerServer is the server API for Poker service.
 // All implementations must embed UnimplementedPokerServer
 // for forward compatibility
 type PokerServer interface {
 	GetNuts(context.Context, *GetNutsRequest) (*GetNutsResponse, error)
+	LotsOfReplies(*HelloRequest, Poker_LotsOfRepliesServer) error
 	mustEmbedUnimplementedPokerServer()
 }
 
@@ -61,6 +97,9 @@ type UnimplementedPokerServer struct {
 
 func (UnimplementedPokerServer) GetNuts(context.Context, *GetNutsRequest) (*GetNutsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetNuts not implemented")
+}
+func (UnimplementedPokerServer) LotsOfReplies(*HelloRequest, Poker_LotsOfRepliesServer) error {
+	return status.Errorf(codes.Unimplemented, "method LotsOfReplies not implemented")
 }
 func (UnimplementedPokerServer) mustEmbedUnimplementedPokerServer() {}
 
@@ -93,6 +132,27 @@ func _Poker_GetNuts_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Poker_LotsOfReplies_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(HelloRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(PokerServer).LotsOfReplies(m, &pokerLotsOfRepliesServer{ServerStream: stream})
+}
+
+type Poker_LotsOfRepliesServer interface {
+	Send(*HelloResponse) error
+	grpc.ServerStream
+}
+
+type pokerLotsOfRepliesServer struct {
+	grpc.ServerStream
+}
+
+func (x *pokerLotsOfRepliesServer) Send(m *HelloResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // Poker_ServiceDesc is the grpc.ServiceDesc for Poker service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -105,6 +165,12 @@ var Poker_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Poker_GetNuts_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "LotsOfReplies",
+			Handler:       _Poker_LotsOfReplies_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "poker.proto",
 }

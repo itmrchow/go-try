@@ -33,6 +33,17 @@ func (s *server) GetNuts(ctx context.Context, req *pb.GetNutsRequest) (*pb.GetNu
 	}, nil
 }
 
+func (s *server) LotsOfReplies(req *pb.HelloRequest, stream pb.Poker_LotsOfRepliesServer) error {
+	greetings := []string{"你好", "Hello", "Bonjour", "Hola"}
+
+	for _, gStr := range greetings {
+		if err := stream.Send(&pb.HelloResponse{Message: req.Name + ":" + gStr + "!"}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func main() {
 	flag.Parse() // 解析命令列參數
 

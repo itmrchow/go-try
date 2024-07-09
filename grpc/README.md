@@ -53,6 +53,12 @@ go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 go get -u google.golang.org/grpc
 ```
 
+## gRPC 四種生命週期
+1. 一對一 (Unary)
+2. 多對一 (Client-side streaming): Client 送很多請求(streaming) , Server只回一個 
+3. 一對多 (Server-side streaming): Client 送一個請求 , Server回覆多個(streaming)
+4. 多對多 (Bidirectional streaming): Client 和 Server 都以 Streaming 的形式交互
+
 ## 開發順序
 1. 寫.proto
 2. create pb file
