@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option go_package = "itmrchow/go-project/try/grpc/proto";
+
+package poker;
+
+message GetNutsRequest{
+    repeated string hand = 1;
+    repeated string river = 2;
+}
+
+message GetNutsResponse{
+    repeated string card = 1;
+}
+
+service Poker {
+    rpc GetNuts(GetNutsRequest) returns (GetNutsResponse);
+}
