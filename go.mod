@@ -1,10 +1,11 @@
 module itmrchow/go-project/try
 
-go 1.22.4
+go 1.21.12
 
 require github.com/google/wire v0.6.0
 
 require (
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/subcommands v1.2.0 // indirect
 	github.com/jinzhu/copier v0.4.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
