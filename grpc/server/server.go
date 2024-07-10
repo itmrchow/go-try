@@ -55,7 +55,7 @@ func (s *server) LotsOfReplies(req *pb.HelloRequest, stream pb.Poker_LotsOfRepli
 		return errors.New("new error")
 	}
 
-	// stream return success message 
+	// stream return success message
 	for _, gStr := range greetings {
 		if err := stream.Send(&pb.HelloResponse{Message: req.Name + ":" + gStr + "!"}); err != nil {
 			return err
@@ -67,27 +67,47 @@ func (s *server) LotsOfReplies(req *pb.HelloRequest, stream pb.Poker_LotsOfRepli
 func (s *server) LotsOfGreetings(stream pb.Poker_LotsOfGreetingsServer) error {
 	nameSlice := []string{}
 
-	for{
-		helloReq , err := stream.Recv()
+	for {
+		helloReq, err := stream.Recv()
 		if err == io.EOF {
-            return stream.SendAndClose(
+			return stream.SendAndClose(
 				&pb.HelloResponse{
 					Message: strings.Join(nameSlice, ",") + ": hello",
 				},
 			)
-        } else if err!= nil {
-            return err
-        } else{
-			log.Println("reqName:" , helloReq.Name)
+		} else if err != nil {
+			return err
+		} else {
+			log.Println("reqName:", helloReq.Name)
 			nameSlice = append(nameSlice, helloReq.Name)
 		}
 	}
 }
 
 func (s *server) BidiHello(stream pb.Poker_BidiHelloServer) error {
-	return nil
-}
+	log.Println("start of stream")
 
+	for {
+		helloReq, err := stream.Recv()
+
+		if err == io.EOF {
+			return nil
+		} else if err != nil {
+			return err
+		}
+
+		println("reqName:", helloReq.Name)
+
+		sendErr := stream.Send(&pb.HelloResponse{
+			Message: helloReq.Name + ": hey",
+		})
+
+		if sendErr != nil {
+			return sendErr
+		}
+
+	}
+}
 
 func main() {
 	flag.Parse() // 解析命令列參數
