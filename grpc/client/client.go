@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"io"
 	"log"
 	"time"
@@ -40,7 +41,9 @@ func main() {
 
 	// sayHello(client, &pb.HelloRequest{Name: *userName})
 
-	sayManyHello(client, []string{"Jeff", "Jojo", "John", "Josh"})
+	// sayManyHello(client, []string{"Jeff", "Jojo", "John", "Josh"})
+
+	sayHelloBidi(client, []string{"Jeff", "Jojo", "John", "Josh"})
 
 }
 
@@ -109,5 +112,35 @@ func sayManyHello(client pb.PokerClient, names []string) {
 	}
 
 	log.Println("ResponseMsg:" + resp.Message)
+}
+
+func sayHelloBidi(client pb.PokerClient, names []string) {
+
+	ch := make(chan string, 2)
+	stream, _ := client.BidiHello(context.Background())
+
+	go func() {
+		defer close(ch)
+		defer stream.CloseSend()
+		for _, n := range names {
+			ch <- n
+			err := stream.Send(&pb.HelloRequest{Name: n})
+			if err != nil {
+				log.Fatalf("stream.Send failed: %v", err)
+			}
+			time.Sleep(time.Second)
+		}
+	}()
+
+	for {
+		name := <-ch
+		respRecv, err := stream.Recv()
+		if err == io.EOF {
+			log.Println("end of stream")
+			break
+		}
+		fmt.Printf("ReqName:%+v\n , respMsg:%+v\n ", name, respRecv.Message)
+
+	}
 
 }
