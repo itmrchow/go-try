@@ -5,8 +5,10 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net"
+	"strings"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -61,6 +63,31 @@ func (s *server) LotsOfReplies(req *pb.HelloRequest, stream pb.Poker_LotsOfRepli
 	}
 	return nil
 }
+
+func (s *server) LotsOfGreetings(stream pb.Poker_LotsOfGreetingsServer) error {
+	nameSlice := []string{}
+
+	for{
+		helloReq , err := stream.Recv()
+		if err == io.EOF {
+            return stream.SendAndClose(
+				&pb.HelloResponse{
+					Message: strings.Join(nameSlice, ",") + ": hello",
+				},
+			)
+        } else if err!= nil {
+            return err
+        } else{
+			log.Println("reqName:" , helloReq.Name)
+			nameSlice = append(nameSlice, helloReq.Name)
+		}
+	}
+}
+
+func (s *server) BidiHello(stream pb.Poker_BidiHelloServer) error {
+	return nil
+}
+
 
 func main() {
 	flag.Parse() // 解析命令列參數
