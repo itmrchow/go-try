@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"net"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 
 	pb "itmrchow/go-project/try/grpc/proto"
@@ -36,6 +38,22 @@ func (s *server) GetNuts(ctx context.Context, req *pb.GetNutsRequest) (*pb.GetNu
 func (s *server) LotsOfReplies(req *pb.HelloRequest, stream pb.Poker_LotsOfRepliesServer) error {
 	greetings := []string{"你好", "Hello", "Bonjour", "Hola"}
 
+	// get metadata
+	md, ok := metadata.FromIncomingContext(stream.Context())
+	if !ok {
+		return errors.New("md not ok")
+	}
+	metadataMsg := md.Get("key1")[0]
+	println("metadataMsg:" + metadataMsg)
+
+	// stream return error sample
+	if req.Name == "Jojo" {
+		stream.Send(&pb.HelloResponse{Message: req.Name + ":" + "ohla!! ohla!!"})
+
+		return errors.New("new error")
+	}
+
+	// stream return success message 
 	for _, gStr := range greetings {
 		if err := stream.Send(&pb.HelloResponse{Message: req.Name + ":" + gStr + "!"}); err != nil {
 			return err
@@ -53,6 +71,7 @@ func main() {
 	}
 
 	s := grpc.NewServer()
+
 	pb.RegisterPokerServer(s, &server{})
 	log.Printf("server listening at %v", lis.Addr())
 
