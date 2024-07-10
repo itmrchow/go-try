@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
@@ -18,7 +18,7 @@ func main() {
 }
 
 func connectDb() (*sqlx.DB, error) {
-	db, err := sqlx.Connect("sqlite3", ":memory:")
+	db, err := sqlx.Connect("mysql", "root:abc123!@(localhost:3306)/")
 	if err != nil {
 		return nil, err
 	}
