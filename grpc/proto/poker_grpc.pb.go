@@ -133,7 +133,7 @@ func (c *pokerClient) BidiHello(ctx context.Context, opts ...grpc.CallOption) (P
 
 type Poker_BidiHelloClient interface {
 	Send(*HelloRequest) error
-	CloseAndRecv() (*HelloResponse, error)
+	Recv() (*HelloResponse, error)
 	grpc.ClientStream
 }
 
@@ -145,10 +145,7 @@ func (x *pokerBidiHelloClient) Send(m *HelloRequest) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *pokerBidiHelloClient) CloseAndRecv() (*HelloResponse, error) {
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
+func (x *pokerBidiHelloClient) Recv() (*HelloResponse, error) {
 	m := new(HelloResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -266,7 +263,7 @@ func _Poker_BidiHello_Handler(srv interface{}, stream grpc.ServerStream) error {
 }
 
 type Poker_BidiHelloServer interface {
-	SendAndClose(*HelloResponse) error
+	Send(*HelloResponse) error
 	Recv() (*HelloRequest, error)
 	grpc.ServerStream
 }
@@ -275,7 +272,7 @@ type pokerBidiHelloServer struct {
 	grpc.ServerStream
 }
 
-func (x *pokerBidiHelloServer) SendAndClose(m *HelloResponse) error {
+func (x *pokerBidiHelloServer) Send(m *HelloResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -313,6 +310,7 @@ var Poker_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "BidiHello",
 			Handler:       _Poker_BidiHello_Handler,
+			ServerStreams: true,
 			ClientStreams: true,
 		},
 	},
