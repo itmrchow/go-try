@@ -27,16 +27,17 @@ func main() {
 	} else {
 		// create schema
 		log.Println("db 建起來")
-
+		if err := createDb(db); err != nil {
+			log.Fatalln("DB error: " + err.Error())
+		}
 		log.Println("db 建好了")
 	}
 
-	// if err := createSchema(db); err != nil {
-	// 	log.Fatalln("DB error: " + err.Error())
-	// }
+}
 
-	// start server
-
+func createDb(db *sqlx.DB) error {
+	_, err := db.Exec("CREATE DATABASE sqlx_test_db CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci")
+	return err
 }
 
 func checkDbExists(db *sqlx.DB) (bool, error) {
