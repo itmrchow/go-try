@@ -38,7 +38,9 @@ func main() {
 
 	// printNuts(client, &pb.GetNutsRequest{})
 
-	sayHello(client, &pb.HelloRequest{Name: *userName})
+	// sayHello(client, &pb.HelloRequest{Name: *userName})
+
+	sayManyHello(client, []string{"Jeff", "Jojo", "John", "Josh"})
 
 }
 
@@ -83,4 +85,29 @@ func sayHello(client pb.PokerClient, helloReq *pb.HelloRequest) {
 			log.Println(helloResp.Message)
 		}
 	}
+}
+
+func sayManyHello(client pb.PokerClient, names []string) {
+
+	// Create stream
+	stream, err := client.LotsOfGreetings(context.Background())
+	if err != nil {
+		log.Fatalf("client.LotsOfGreetings failed: %v", err)
+	}
+
+	// Forloop , send msg in stream
+	for _, n := range names {
+		if err := stream.Send(&pb.HelloRequest{Name: n}); err != nil {
+			log.Fatalf("stream.Send failed: %v", err)
+		}
+	}
+
+	// close stream & get response
+	resp, err := stream.CloseAndRecv()
+	if err != nil {
+		log.Fatalf("stream close failed: %v", err)
+	}
+
+	log.Println("ResponseMsg:" + resp.Message)
+
 }
