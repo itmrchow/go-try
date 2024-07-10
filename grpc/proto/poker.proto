@@ -24,4 +24,6 @@ message HelloResponse{
 service Poker {
     rpc GetNuts(GetNutsRequest) returns (GetNutsResponse);
     rpc LotsOfReplies(HelloRequest) returns (stream HelloResponse);
+    rpc LotsOfGreetings(stream HelloRequest) returns (HelloResponse);
+    rpc BidiHello(stream HelloRequest) returns (HelloResponse);
 }

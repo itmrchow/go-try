@@ -19,8 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	Poker_GetNuts_FullMethodName       = "/poker.Poker/GetNuts"
-	Poker_LotsOfReplies_FullMethodName = "/poker.Poker/LotsOfReplies"
+	Poker_GetNuts_FullMethodName         = "/poker.Poker/GetNuts"
+	Poker_LotsOfReplies_FullMethodName   = "/poker.Poker/LotsOfReplies"
+	Poker_LotsOfGreetings_FullMethodName = "/poker.Poker/LotsOfGreetings"
+	Poker_BidiHello_FullMethodName       = "/poker.Poker/BidiHello"
 )
 
 // PokerClient is the client API for Poker service.
@@ -29,6 +31,8 @@ const (
 type PokerClient interface {
 	GetNuts(ctx context.Context, in *GetNutsRequest, opts ...grpc.CallOption) (*GetNutsResponse, error)
 	LotsOfReplies(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (Poker_LotsOfRepliesClient, error)
+	LotsOfGreetings(ctx context.Context, opts ...grpc.CallOption) (Poker_LotsOfGreetingsClient, error)
+	BidiHello(ctx context.Context, opts ...grpc.CallOption) (Poker_BidiHelloClient, error)
 }
 
 type pokerClient struct {
@@ -82,12 +86,84 @@ func (x *pokerLotsOfRepliesClient) Recv() (*HelloResponse, error) {
 	return m, nil
 }
 
+func (c *pokerClient) LotsOfGreetings(ctx context.Context, opts ...grpc.CallOption) (Poker_LotsOfGreetingsClient, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Poker_ServiceDesc.Streams[1], Poker_LotsOfGreetings_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &pokerLotsOfGreetingsClient{ClientStream: stream}
+	return x, nil
+}
+
+type Poker_LotsOfGreetingsClient interface {
+	Send(*HelloRequest) error
+	CloseAndRecv() (*HelloResponse, error)
+	grpc.ClientStream
+}
+
+type pokerLotsOfGreetingsClient struct {
+	grpc.ClientStream
+}
+
+func (x *pokerLotsOfGreetingsClient) Send(m *HelloRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *pokerLotsOfGreetingsClient) CloseAndRecv() (*HelloResponse, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(HelloResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *pokerClient) BidiHello(ctx context.Context, opts ...grpc.CallOption) (Poker_BidiHelloClient, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Poker_ServiceDesc.Streams[2], Poker_BidiHello_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &pokerBidiHelloClient{ClientStream: stream}
+	return x, nil
+}
+
+type Poker_BidiHelloClient interface {
+	Send(*HelloRequest) error
+	CloseAndRecv() (*HelloResponse, error)
+	grpc.ClientStream
+}
+
+type pokerBidiHelloClient struct {
+	grpc.ClientStream
+}
+
+func (x *pokerBidiHelloClient) Send(m *HelloRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *pokerBidiHelloClient) CloseAndRecv() (*HelloResponse, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(HelloResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // PokerServer is the server API for Poker service.
 // All implementations must embed UnimplementedPokerServer
 // for forward compatibility
 type PokerServer interface {
 	GetNuts(context.Context, *GetNutsRequest) (*GetNutsResponse, error)
 	LotsOfReplies(*HelloRequest, Poker_LotsOfRepliesServer) error
+	LotsOfGreetings(Poker_LotsOfGreetingsServer) error
+	BidiHello(Poker_BidiHelloServer) error
 	mustEmbedUnimplementedPokerServer()
 }
 
@@ -100,6 +176,12 @@ func (UnimplementedPokerServer) GetNuts(context.Context, *GetNutsRequest) (*GetN
 }
 func (UnimplementedPokerServer) LotsOfReplies(*HelloRequest, Poker_LotsOfRepliesServer) error {
 	return status.Errorf(codes.Unimplemented, "method LotsOfReplies not implemented")
+}
+func (UnimplementedPokerServer) LotsOfGreetings(Poker_LotsOfGreetingsServer) error {
+	return status.Errorf(codes.Unimplemented, "method LotsOfGreetings not implemented")
+}
+func (UnimplementedPokerServer) BidiHello(Poker_BidiHelloServer) error {
+	return status.Errorf(codes.Unimplemented, "method BidiHello not implemented")
 }
 func (UnimplementedPokerServer) mustEmbedUnimplementedPokerServer() {}
 
@@ -153,6 +235,58 @@ func (x *pokerLotsOfRepliesServer) Send(m *HelloResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _Poker_LotsOfGreetings_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(PokerServer).LotsOfGreetings(&pokerLotsOfGreetingsServer{ServerStream: stream})
+}
+
+type Poker_LotsOfGreetingsServer interface {
+	SendAndClose(*HelloResponse) error
+	Recv() (*HelloRequest, error)
+	grpc.ServerStream
+}
+
+type pokerLotsOfGreetingsServer struct {
+	grpc.ServerStream
+}
+
+func (x *pokerLotsOfGreetingsServer) SendAndClose(m *HelloResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *pokerLotsOfGreetingsServer) Recv() (*HelloRequest, error) {
+	m := new(HelloRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func _Poker_BidiHello_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(PokerServer).BidiHello(&pokerBidiHelloServer{ServerStream: stream})
+}
+
+type Poker_BidiHelloServer interface {
+	SendAndClose(*HelloResponse) error
+	Recv() (*HelloRequest, error)
+	grpc.ServerStream
+}
+
+type pokerBidiHelloServer struct {
+	grpc.ServerStream
+}
+
+func (x *pokerBidiHelloServer) SendAndClose(m *HelloResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *pokerBidiHelloServer) Recv() (*HelloRequest, error) {
+	m := new(HelloRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // Poker_ServiceDesc is the grpc.ServiceDesc for Poker service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -170,6 +304,16 @@ var Poker_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "LotsOfReplies",
 			Handler:       _Poker_LotsOfReplies_Handler,
 			ServerStreams: true,
+		},
+		{
+			StreamName:    "LotsOfGreetings",
+			Handler:       _Poker_LotsOfGreetings_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "BidiHello",
+			Handler:       _Poker_BidiHello_Handler,
+			ClientStreams: true,
 		},
 	},
 	Metadata: "poker.proto",
