@@ -18,9 +18,9 @@ func main() {
 	// insertUser(db)
 
 	// insertPost(db)
-	insertPosts(db)
+	// insertPosts(db)
 
-	// updatePost(db)
+	updatePost(db)
 
 }
 
@@ -32,6 +32,17 @@ type Post struct {
 	CreatedAt int64  `db:"created_at"`
 	UpdatedAt int64  `db:"updated_at"`
 	DeletedAt int64  `db:"deleted_at"`
+}
+
+func updatePost(db *sqlx.DB) {
+	log.Println("Update Post")
+
+	updateStr := "UPDATE `sqlx_test_db`.`posts` SET `title` = :title, `content` = :content WHERE `post_id` = :post_id"
+	_, err := db.NamedExec(updateStr, &Post{PostId: 2, Title: "PostTitleUpdated", Content: "ContentUpdated"})
+
+	if err != nil {
+		log.Fatalln("Update error:", err.Error())
+	}
 }
 
 func insertPost(db *sqlx.DB) {
