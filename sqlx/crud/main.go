@@ -20,7 +20,8 @@ func main() {
 	// insertPost(db)
 	// insertPosts(db)
 
-	updatePost(db)
+	// updatePost(db)
+	updatePosts(db)
 
 }
 
@@ -39,6 +40,17 @@ func updatePost(db *sqlx.DB) {
 
 	updateStr := "UPDATE `sqlx_test_db`.`posts` SET `title` = :title, `content` = :content WHERE `post_id` = :post_id"
 	_, err := db.NamedExec(updateStr, &Post{PostId: 2, Title: "PostTitleUpdated", Content: "ContentUpdated"})
+
+	if err != nil {
+		log.Fatalln("Update error:", err.Error())
+	}
+}
+
+func updatePosts(db *sqlx.DB) {
+	log.Println("Update Posts")
+
+	updateStr := "UPDATE `sqlx_test_db`.`posts` SET `content` = :content WHERE `title` LIKE :msg"
+	_, err := db.NamedExec(updateStr, map[string]interface{}{"msg": "%AAA", "content": "update:AAA"})
 
 	if err != nil {
 		log.Fatalln("Update error:", err.Error())
