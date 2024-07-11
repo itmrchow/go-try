@@ -16,16 +16,17 @@ func main() {
 	}
 	log.Println("server up")
 
-	// create sqlx_test_db database
+	// check sqlx_test_db exists
 	dbExist, checkExistsErr := checkDbExists(db)
 	if checkExistsErr != nil {
 		log.Fatalln("DB error: " + checkExistsErr.Error())
 	}
 
+	// create sqlx_test_db database
 	if dbExist {
 		log.Println("db 在哦")
 	} else {
-		// create schema
+		// create db
 		log.Println("db 建起來")
 		if err := createDb(db); err != nil {
 			log.Fatalln("DB error: " + err.Error())
