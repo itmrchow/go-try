@@ -9,36 +9,40 @@ import (
 
 func main() {
 
-	log.Println("connect db")
 	db, err := connectDb()
 	if err != nil {
 		log.Fatalln("DB error: " + err.Error())
 	}
-	log.Println("server up")
+	log.Println("connected db")
 
+	if err := createDb(db); err != nil {
+		log.Fatalln("DB error: " + err.Error())
+	}
+
+}
+
+func createDb(db *sqlx.DB) error {
 	// check sqlx_test_db exists
 	dbExist, checkExistsErr := checkDbExists(db)
 	if checkExistsErr != nil {
 		log.Fatalln("DB error: " + checkExistsErr.Error())
 	}
 
+	log.Println("check db exists:", dbExist)
+
 	// create sqlx_test_db database
-	if dbExist {
-		log.Println("db 在哦")
-	} else {
+	if !dbExist {
 		// create db
 		log.Println("db 建起來")
-		if err := createDb(db); err != nil {
+
+		_, err := db.Exec("CREATE DATABASE sqlx_test_db CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci")
+		if err != nil {
 			log.Fatalln("DB error: " + err.Error())
 		}
+
 		log.Println("db 建好了")
 	}
-
-}
-
-func createDb(db *sqlx.DB) error {
-	_, err := db.Exec("CREATE DATABASE sqlx_test_db CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci")
-	return err
+	return nil
 }
 
 func checkDbExists(db *sqlx.DB) (bool, error) {
