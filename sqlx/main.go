@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -45,8 +47,12 @@ func main() {
 	}
 
 	// create table
-
-	checkTableExists(db, "users")
+	tableNames := []string{"users", "posts"}
+	for _, tableName := range tableNames {
+		if err := createTable(db, tableName); err != nil {
+			log.Fatalln("DB error: " + err.Error())
+		}
+	}
 
 }
 
@@ -82,25 +88,54 @@ func checkSchemaExists(db *sqlx.DB) (bool, error) {
 	}
 	return exists, nil
 }
+func createTable(db *sqlx.DB, tableName string) error {
 
-func createTable(db *sqlx.DB) {
-	// Check User Schema Exists & Create User
-	db.Exec("")
+	// check sqlx_test_db exists
+	isUserExists, userExistsErr := checkTableExists(db, tableName)
+	if userExistsErr != nil {
+		return userExistsErr
+	}
+	if isUserExists {
+		return nil
+	}
 
-	// Check Post Schema Exists & Create Post
+	log.Println("Create Table:", tableName)
+
+	var execStr string
+	switch tableName {
+	case "users":
+		execStr = CREATE_USER_SCHEMA
+	case "posts":
+		execStr = CREATE_POST_SCHEMA
+	default:
+		errorMsg := fmt.Sprintf("table is not definition:%v", tableName)
+
+		log.Println(errorMsg)
+		return errors.New(errorMsg)
+	}
+
+	_, err := db.Exec(execStr)
+
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
+
+	log.Println("Create table finish:", tableName)
+	return nil
 }
 
 func checkTableExists(db *sqlx.DB, tableName string) (bool, error) {
 	log.Println("check table exists:", tableName)
 	var exists bool
 
-	err := db.Get(&exists, "SELECT EXISTS(SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'sqlx_test_db' AND TABLE_NAME = ?)", "users")
+	err := db.Get(&exists, "SELECT EXISTS(SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'sqlx_test_db' AND TABLE_NAME = ?)", tableName)
 	if err != nil {
 		log.Println(err.Error())
 		return false, err
 	}
 
-	log.Println(tableName, ", table exists:", exists)
+	log.Println(tableName, " table exists:", exists)
 
 	return exists, nil
 }
