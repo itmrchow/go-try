@@ -9,7 +9,7 @@ import (
 
 const (
 	CREATE_USER_SCHEMA = `
-		CREATE TABLE Users (
+		CREATE TABLE sqlx_test_db.users (
 			user_id INT AUTO_INCREMENT PRIMARY KEY,
 			username VARCHAR(255) NOT NULL,
 			email VARCHAR(255) NOT NULL,
@@ -20,14 +20,14 @@ const (
 		`
 
 	CREATE_POST_SCHEMA = `
-		CREATE TABLE Posts (
+		CREATE TABLE sqlx_test_db.posts (
 			post_id INT AUTO_INCREMENT PRIMARY KEY,
 			user_id INT NOT NULL,
 			title VARCHAR(255) NOT NULL,
 			content TEXT NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-			FOREIGN KEY (user_id) REFERENCES Users(user_id)
+			FOREIGN KEY (user_id) REFERENCES users(user_id)
 		)
 		`
 )
