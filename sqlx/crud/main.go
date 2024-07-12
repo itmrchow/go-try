@@ -73,14 +73,16 @@ func insertPosts(db *sqlx.DB) {
 
 	posts := []Post{}
 
-	for i := 0; i < 100; i++ {
+	for i := 100; i < 30000; i++ {
 		posts = append(posts, Post{UserId: 1, Title: fmt.Sprintf("PostTitle%d", i), Content: fmt.Sprintf("Content%d", i)})
 	}
 
-	insertStr := "INSERT INTO `sqlx_test_db`.`posts` (`user_id`, `title`, `content` ) VALUES (:user_id, :title, :content)"
-	_, err := db.NamedExec(insertStr, posts)
-	if err != nil {
-		log.Fatalln("Insert error:", err.Error())
+	for i := 0; i < len(posts); i += 100 {
+		insertStr := "INSERT INTO `sqlx_test_db`.`posts` (`user_id`, `title`, `content` ) VALUES (:user_id, :title, :content)"
+		_, err := db.NamedExec(insertStr, posts[i:i+100])
+		if err != nil {
+			log.Fatalln("Insert error:", err.Error())
+		}
 	}
 }
 
