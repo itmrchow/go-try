@@ -1,8 +1,10 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
@@ -21,18 +23,76 @@ func main() {
 	// insertPosts(db)
 
 	// updatePost(db)
-	updatePosts(db)
+	// updatePosts(db)
+
+	// deletePost(db)
+
+	getPost(db)
 
 }
 
 type Post struct {
-	PostId    int    `db:"post_id"`
-	UserId    int    `db:"user_id"`
-	Title     string `db:"title"`
-	Content   string `db:"content"`
-	CreatedAt int64  `db:"created_at"`
-	UpdatedAt int64  `db:"updated_at"`
-	DeletedAt int64  `db:"deleted_at"`
+	PostId    int       `db:"post_id"`
+	UserId    int       `db:"user_id"`
+	Title     string    `db:"title"`
+	Content   string    `db:"content"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+	DeletedAt time.Time `db:"deleted_at"`
+}
+
+func getPost(db *sqlx.DB) {
+	println("Get post")
+
+	post := Post{}
+	postId := 9
+	sqlStr := `SELECT post_id , user_id , title , content , created_at , updated_at , deleted_at FROM posts WHERE post_id = ?`
+
+	err := db.Get(&post, sqlStr, postId)
+	if err == sql.ErrNoRows {
+		err = nil
+		return
+	}
+	if err != nil {
+		log.Fatalln("Get error:", err.Error())
+		return
+	}
+
+	fmt.Printf("%+v\n", post)
+	print("UnixNano:")
+	println(post.DeletedAt.UnixNano())
+
+	return
+}
+
+func deletePost(db *sqlx.DB) {
+	log.Println("Delete post")
+
+	currentTime := time.Now()
+	print("Unix:")
+	println(currentTime.UnixMicro())
+
+	arg := map[string]interface{}{
+		"deleted_at": currentTime,
+		"post_ids":   []int{9, 11, 13, 15},
+	}
+
+	deleteStr := "UPDATE `sqlx_test_db`.`posts` SET `deleted_at` = :deleted_at WHERE `post_id` IN (:post_ids)"
+	query, args, err := sqlx.Named(deleteStr, arg)
+	if err != nil {
+		log.Fatalln("Delete error:", err.Error())
+	}
+	query, args, err = sqlx.In(query, args...)
+	if err != nil {
+		log.Fatalln("Delete error:", err.Error())
+	}
+
+	query = db.Rebind(query)
+
+	_, err = db.Exec(query, args...)
+	if err != nil {
+		log.Fatalln("Delete error:", err.Error())
+	}
 }
 
 func updatePost(db *sqlx.DB) {
@@ -73,7 +133,7 @@ func insertPosts(db *sqlx.DB) {
 
 	posts := []Post{}
 
-	for i := 100; i < 30000; i++ {
+	for i := 0; i < 30000; i++ {
 		posts = append(posts, Post{UserId: 1, Title: fmt.Sprintf("PostTitle%d", i), Content: fmt.Sprintf("Content%d", i)})
 	}
 
@@ -107,7 +167,7 @@ func insertUser(db *sqlx.DB) {
 }
 
 func connectDb() (*sqlx.DB, error) {
-	db, err := sqlx.Connect("mysql", "root:abc123!@(localhost:3306)/")
+	db, err := sqlx.Connect("mysql", "root:abc123!@(localhost:3306)/sqlx_test_db?parseTime=true")
 	if err != nil {
 		return nil, err
 	}
