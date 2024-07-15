@@ -27,7 +27,73 @@ func main() {
 
 	// deletePost(db)
 
-	getPost(db)
+	// getPost(db)
+	findPost(db)
+
+}
+
+type page struct {
+	id    int
+	limit int
+	flip  string
+}
+
+// Query Post , delete no show , 分頁 , 指定User ,  指定比數後的 , 新的在後
+func findPost(db *sqlx.DB) {
+
+	page := page{
+		id:    13,
+		limit: 20,
+		flip:  "next",
+	}
+
+	sort := "DESC"
+	sqlStr := `
+	SELECT post_id , user_id , title , content , created_at , updated_at
+	FROM posts
+	WHERE
+		user_id = :user_id
+		AND
+		deleted_at IS NULL
+		ORDER BY post_id %s
+		LIMIT :id , :limit
+	`
+
+	if sort == "DESC" {
+		sqlStr = fmt.Sprintf(sqlStr, sort)
+	} else {
+		sqlStr = fmt.Sprintf(sqlStr, "ASC")
+	}
+
+	arg := map[string]interface{}{
+		"user_id": 2,
+		"sort":    sort,
+		"id":      page.id,
+		"limit":   page.limit,
+	}
+
+	posts := []Post{}
+
+	// 塞值
+	query, args, namedErr := sqlx.Named(sqlStr, arg)
+	if namedErr != nil {
+		log.Fatalln("findPost error:", namedErr.Error())
+		return
+	}
+
+	fmt.Printf("%+v\n", query)
+	fmt.Printf("%+v\n", args)
+
+	// 查詢
+	selectErr := db.Select(&posts, query, args...)
+	if selectErr != nil {
+		log.Fatalln("findPost error:", selectErr.Error())
+		return
+	}
+
+	for _, post := range posts {
+		fmt.Printf("%+v\n", post)
+	}
 
 }
 
@@ -133,8 +199,8 @@ func insertPosts(db *sqlx.DB) {
 
 	posts := []Post{}
 
-	for i := 0; i < 30000; i++ {
-		posts = append(posts, Post{UserId: 1, Title: fmt.Sprintf("PostTitle%d", i), Content: fmt.Sprintf("Content%d", i)})
+	for i := 0; i < 100000; i++ {
+		posts = append(posts, Post{UserId: 2, Title: fmt.Sprintf("PostTitle%d", i), Content: fmt.Sprintf("Content%d", i)})
 	}
 
 	for i := 0; i < len(posts); i += 100 {
